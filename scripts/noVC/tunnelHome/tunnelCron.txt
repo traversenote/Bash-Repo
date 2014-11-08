@@ -1,3 +1,0 @@
-# This calls the reverse tunneling script.
-# Look for the Tunnel Home
-*	*	*	*	*	/usr/sbin/tunnelHome.sh
