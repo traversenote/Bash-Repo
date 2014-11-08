@@ -1,0 +1,13 @@
+#############################################################################
+#
+#  Welcome to the Directory Listing for The Listening Post.
+#  This is a listing of ports and the remote sites they connect to.
+#  You will be expected to provide an appropriate user name and keyfile.
+#
+#############################################################################
+
+2222 - Jason's Raspberry Pi
+2223 - Grant Close's Christchurch Home
+2224 - Grant Close's Queenstown Home
+
+

@@ -1,0 +1,131 @@
+#!/bin/bash
+#
+# Part one of the process.  Looks for flac files with errors.
+#
+szDate=`/bin/date`
+szMusicRoot='/storage/music'
+#szErrFile="$szMusicRoot/flac_errors.txt"
+szErrFile="/tmp/flac_errors.txt"
+
+echo Recursively testing flacs in $szMusicRoot
+echo Flac decoding errors logged to $szErrFile
+echo Flac test of $szMusicRoot started at $szDate >"$szErrFile"
+
+/usr/bin/find "$szMusicRoot/" -name '*.flac' -type f -not -exec /usr/bin/flac -t --totally-silent '{}' \; -and -print >>"$szErrFile"
+
+echo Done!
+
+Part 2 - 'Fix' the bad files
+<<< --- flacfix.sh --- >>>
+
+#!/bin/bash
+# This script is part two of the process.  This will 'repair' all files that
+# have been written to flac_errors.txt
+#
+# Requires the file flac_errors.txt to already exist
+#
+szDate=`/bin/date`
+szMusicRoot='/var/lib/mythtv/music'
+#filelist="$szMusicRoot/flac_errors.txt"
+filelist="/tmp/flac_errors.txt"
+fixedfile="/tmp/nometa.txt"
+
+flac=/usr/bin/flac
+
+#find "$szMusicRoot" -type f -name "*.flac" > /tmp/flacfiles.list
+echo > $szDate > $fixedfile
+
+if [ -f /tmp/since ];
+then
+        mv /tmp/since /tmp/since."$szDate"
+fi
+touch /tmp/since
+
+#Get rid of the first line of the file
+file=$(head -1 $filelist)
+sed -i 1d $filelist
+echo "Files to process:  " $(wc -l $filelist)
+
+while [ -s $filelist ] ; do
+        file=$(head -1 $filelist)
+        echo $file >> $fixedfile
+        wav_pref=${file%%flac};
+        wav_suff=wav
+        wav_file="$wav_pref""$wav_suff"
+        if [ -f "$file" ];
+                then
+                $flac -F -f -s -d --delete-input-file "$file"
+        fi
+        if [ -f "$wav_file" ];
+                then
+                $flac -5 -f -s --delete-input-file "$wav_file"
+        fi
+# remove current file from list
+        sed -i 1d $filelist
+done
+
+Part 3 - Update the vorbis tag information
+<<< ---  fixmeta.sh --- >>>
+
+#!/bin/bash
+# This script will read the input file, needmeta.txt which has directories
+# that have a newer timestamp than the file /tmp/since.  These directories
+# need to have the metadata updated for their audio files.  The script
+# fixalbums.pl is executed in each of these directories.
+#
+# Requirements:
+# touch the /tmp/since with your necessary time/date
+# the previous script touches the /tmp/since file automatically.
+# touch --date "12/25/2012 15:00:00" /tmp/since
+#
+szDate=`/bin/date`
+szMusicRoot='/var/lib/mythtv/music'
+filelist=$szMusicRoot/needmeta.txt
+flac=/usr/bin/flac
+
+echo Gathering directories to process ...
+find $szMusicRoot -type d -newer /tmp/since > $filelist
+
+while read Path
+do
+if [ "$szMusicRoot" != "$Path" ]
+then
+echo $Path
+        ArtistAlbum=${Path##$szMusicRoot}
+        NewArtist=${ArtistAlbum%/*}
+        Artist=${NewArtist#/}
+        Album=${ArtistAlbum##*/}
+        AA=$szMusicRoot/$ArtistAlbum
+        cd "$AA" && fixalbums.pl
+fidone < "$filelist"
+
+<<< ---  EOF --- >>>
+Make a list of all of the FLACfiles in "$szMusicRoot"
+<<< ---  Command Line --- >>>
+find "$szMusicRoot" -type f -name "*.flac" > /tmp/flacfiles.list
+
+<<< ---  EOF --- >>>
+Fix flac files on a timer
+<<< ---  Flac Fix --- >>>
+
+#!/bin/bash
+# set path to files
+flac=/usr/bin/flac
+filelist=flacfiles.list
+
+# set the number of seconds to run
+# multiply by 3600 for each hour
+(( seconds_to_run= 2 * 3600 ))
+
+echo "Run duration:       $seconds_to_run seconds"
+echo "Files to process:  " $(wc -l $filelist)
+
+while [ -s $filelist -a $SECONDS -lt $seconds_to_run ] ; do
+    file=$(head -1 $filelist)
+    if ! $flac -t --totally-silent "$file" ; then
+        echo $file command here  >> bad.files
+        echo Corrupt: $file
+    fi
+    # remove current file from list
+    sed -i .prev '1d' $filelist
+done

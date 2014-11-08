@@ -1,0 +1,89 @@
+#!/bin/bash
+#
+#############################################################################
+#  Copyright 2013 by Jason Spears, All Rights Reserved
+#
+#  To the maximum extent permitted by applicable law, in no event shall
+#  Jason Spears or affiliates be liable for any special,
+#  incidental,  indirect, or consequential damages whatsoever (including,
+#  without limitation, damages for loss of business profits, business interruption,
+#  loss of business information, or any other pecuniary loss) arising out
+#  of the use of or inability to use this software product or the provision
+#  of or failure to provide support services, even if Jason Spears
+#  has been advised of the possibility of such damages.
+#
+#  THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+#  KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+#  IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR
+#  PURPOSE.
+#
+#  http:#www.sr-studio.com
+#
+#############################################################################
+#############################################################################
+#Variable Declaration Area
+#############################################################################
+#  Customer Information
+#############################################################################
+customer=
+#############################################################################
+# Home Address
+#############################################################################
+addressBook=
+home=
+homePort=
+
+
+#############################################################################
+#  Standard Variables
+#############################################################################
+NOW=$(date +"%m-%d-%y:%T")
+logFile=/var/log/ipScript.log
+tempFile=currentAddress.tmp
+currentAddress=`curl ipecho.net/plain`
+lastAddress=
+
+#############################################################################
+#############################################################################
+#Functions to be used
+#############################################################################
+
+function getLastAddress {
+	while line
+		$lastAddress=$line
+	done < $tempFile
+}
+
+function phoneHome {
+	`ssh midas@203.97.202.230 -p 6666`
+	commandToDo="echo "$lastAddress" > /home/midas/script/phoneHome/" $customer
+	`$commandToDo`
+}
+#############################################################################
+#############################################################################
+#Start of the Actual Script
+#############################################################################
+getLastAddress
+
+checkAddress;
+
+
+
+READ file, SET $lastAddress
+GET $currentAddress
+if [[ $currentAddress != $lastAddress ]] ; then
+	phoneHome
+fi
+curl ipecho.net/plain ; echo >> $logFile
+
+if [[ $currentAddress != $lastAddress ]] ;  then 
+	ssh $home $homePort
+	OPEN $addressBook
+	find $customer
+	write $currentAddress
+	CLOSE
+	disconnect
+fi
+
+echo $NOW >> $logFile
+

@@ -1,0 +1,95 @@
+#!/bin/bash
+# chkconfig: 2345 95 20
+# description: A function to start the Daemon for the SNMP Power Board on boot
+# This establishes a netcat listening port, waiting for the commands to come through from elan g, then fires an http request to control the power board.
+# processname: powerBoard
+
+
+logFile=/var/log/powerBoard.log
+NOW=$(date +"%m-%d-%y:%T")
+case "$1" in
+	start)
+		echo $NOW >> "${logFile}"
+		echo "Starting powerBoard Service" >> "${logFile}"
+		echo "Starting Power Board Relay Service: "
+		while read -r line
+			do
+				echo $NOW >> "${logFile}"
+				echo "Received request for: $line" >> "${logFile}"
+				case "$line" in
+					"port.1.on")
+						curl http://snmp:1234@192.168.1.11/ons.cgi?led=100000000000000000000000
+						;;
+					"port.1.off")
+						curl http://snmp:1234@192.168.1.11/offs.cgi?led=100000000000000000000000
+						;;
+					"port.2.on")
+						curl http://snmp:1234@192.168.1.11/ons.cgi?led=010000000000000000000000
+						;;
+					"port.2.off")
+						curl http://snmp:1234@192.168.1.11/offs.cgi?led=010000000000000000000000
+						;;
+					"port.3.on")
+						curl http://snmp:1234@192.168.1.11/ons.cgi?led=001000000000000000000000
+						;;
+					"port.3.off")
+						curl http://snmp:1234@192.168.1.11/offs.cgi?led=001000000000000000000000
+						;;
+					"port.4.on")
+						curl http://snmp:1234@192.168.1.11/ons.cgi?led=000100000000000000000000
+						;;
+					"port.4.off")
+						curl http://snmp:1234@192.168.1.11/offs.cgi?led=000100000000000000000000
+						;;
+					"port.5.on")
+						curl http://snmp:1234@192.168.1.11/ons.cgi?led=000010000000000000000000
+						;;
+					"port.5.off")
+						curl http://snmp:1234@192.168.1.11/offs.cgi?led=000010000000000000000000
+						;;
+					"port.6.on")
+						curl http://snmp:1234@192.168.1.11/ons.cgi?led=000001000000000000000000
+						;;
+					"port.6.off")
+						curl http://snmp:1234@192.168.1.11/offs.cgi?led=000001000000000000000000
+						;;
+					"port.7.on")
+						curl http://snmp:1234@192.168.1.11/ons.cgi?led=000000100000000000000000
+						;;
+					"port.7.off")
+						curl http://snmp:1234@192.168.1.11/offs.cgi?led=000000100000000000000000
+						;;
+					"port.8.on")
+						curl http://snmp:1234@192.168.1.11/ons.cgi?led=000000010000000000000000
+						;;
+					"port.8.off")
+						curl http://snmp:1234@192.168.1.11/offs.cgi?led=0000000100000000000000000
+						;;
+					*)
+						echo $line >> "${logFile}"
+						;;
+				esac
+			done < <(nc -lkd 1138) &
+		echo "Started."
+		;;
+	stop)
+		echo "Stopping powerBoard Service" >> "${logFile}"
+		echo "Stopping powerBoard Service: "
+		`killall nc`
+		;;
+	restart)
+		echo "Restart Called" >> "${logFile}"
+		echo -n "Restarting Service: "
+		$0 stop
+		$0 start
+		;;
+	reload)
+		echo -n "Reloading Service: "
+		;;
+	*)
+		echo -n "Usage powerBoard {start|stop|restart}"
+		exit 1
+		;;
+esac
+
+exit 0

@@ -1,0 +1,12 @@
+#Data file for the siteStats script
+SITE = listeningpost.co.nz
+SITE = audioenz.co.nz
+SITE = rapalloav.co.nz
+SITE = strawberrysound.co.nz
+SITE = listening.co.nz
+SITE = tophifi.co.nz
+SITE = purehifi.co.nz
+SITE = audioreference.co.nz
+SITE = flaxaudio.co.nz
+SITE = soundline.co.nz
+site = witchdoctor.co.nz
