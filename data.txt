@@ -1,8 +1,8 @@
 HTTP/1.1 200 OK
 Content-Type: text/xml
-Date: Mon, 19 Oct 2015 01:11:00 GMT
+Date: Mon, 19 Oct 2015 03:29:49 GMT
 Server: nginx
-Via: 1.1 BC1-ACLD
+Via: 1.1 BC5-ACLD
 Content-Length: 510
 Connection: Keep-Alive
 
@@ -15,9 +15,9 @@ Connection: Keep-Alive
 <OWNER NAME="Noelleeming.co.nz"/>
 </SD>
 <SD>
-<POPULARITY URL="noelleeming.co.nz/" TEXT="70842" SOURCE="panel"/>
-<REACH RANK="79529"/>
-<RANK DELTA="+3332"/>
-<COUNTRY CODE="NZ" NAME="New Zealand" RANK="124"/>
+<POPULARITY URL="noelleeming.co.nz/" TEXT="71015" SOURCE="panel"/>
+<REACH RANK="79558"/>
+<RANK DELTA="+3820"/>
+<COUNTRY CODE="NZ" NAME="New Zealand" RANK="119"/>
 </SD>
 </ALEXA>
