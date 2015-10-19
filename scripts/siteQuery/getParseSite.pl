@@ -1,6 +1,8 @@
 #!/usr/bin/perl
 use strict; use warnings;
 
+#Written by Jason Spears Jason@listeningpost.co.nz
+
 #Source Files Declaration
 my $junkFile = 'data.txt';
 my $siteFile = 'sites.dat';
@@ -48,16 +50,18 @@ sub currentTime {
 	return ($monthname{$lastMonthnum}, $tidyDate, $formatTime);
 }
 #Initialize Variables to make this thing work
-my ($lastMonth, $tidyDate, $formatTime) = currentTime(); my $site; my @result = (0); my $siteRank = ''; my 
-$siteLinks = '';
+my ($lastMonth, $tidyDate, $formatTime) = currentTime(); my $site; my @result = (0); my $siteRank = ''; my $siteDelta = '';
+
 #Open our files
 open (OUTPUT, "+>$outputFile") or die $!; my $sites = open (SITES, $siteFile) or die $!; my $debugLog = open 
 (DEBUG, "+>$outputFile") or die $!;
+
 #We begin by introducing ourselves
 print "\n\nThis script attempts to automatically pull down monthly stats for the month of 
 $lastMonth from Alexa.com\nSites to be queried are located in $siteFile\nThe output is located in $outputFile\n"; 
 print OUTPUT "<!DOCTYPE HTML PUBLIC \"-\/\/W3C\/\/DTD HTML 4.01 Transitional\/\/EN\"\"http:\/\/www.w3.org\/TR\/html4\/loose.dtd\"><html lang=\"en\"><head><meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"><title>$title<\/title><\/head><body>";
 print OUTPUT "This report was generated at $formatTime on $tidyDate<\/br><\/br>";
+print OUTPUT "<table width=\"50%\">";
 
 #The actual work begins
 while(my $line = <SITES>){
@@ -66,58 +70,59 @@ while(my $line = <SITES>){
 	chomp $line;
 	$line =~ s/[SITE = ]//g;
 	$site = $line;
-	
+
 #Query the URL
-	my $queryURL = "http://www.alexa.com/siteinfo/$site";
-	my $feedBack = `curl -silent $queryURL`;
+	my $queryURL = "http://data.alexa.com/data?cli=10\\&dat=s\\&url=$site";	
+	my $feedBack = `curl '$queryURL'`;
+	#print "\n $queryURL \n";
 	
 #Open and write $file with the results
 	open (JUNKFILE, ">$junkFile") or die $!;
-	print JUNKFILE "$feedBack";
+	print JUNKFILE "$feedBack";	
+
+
 #Parse the resulting file and pull out the stats we want
 	my $data = open (JUNKFILE, $junkFile) or die $!;;
 		while(my $line = <JUNKFILE>){
-			
+
 		#This part looks for the Site Rank Portion
-			if(index($line, 'Global rank icon') != -1 ){
+			if(index($line, '<POPULARITY') != -1 ){
+				$line =~ s/\D//g;
 				push @result, $line;
-				while($line = <JUNKFILE>){
-					last if $line =~ "class=";
-					push @result, $line;
 				}	
-			}
-		#Checks the number of Sites Linking In
-			if(index($line, 'Sites Linking Inxx') != -1){
+			
+		#Checks the Change
+			if(index($line, '<RANK') != -1 ){
+				$line =~ s/[A-Z, \<, \>, \=, \/, \"]//g;
 				push @result, $line;
-				while($line = <JUNKFILE>){
-					last if $line =~ "</div>";
-					push @result, $line;
 				}
 			}
 			
-		}
-		
 	#Grab the results and Tidy them Site Rank Portion
 	$siteRank = $result[1];
-	$siteRank =~ m/((\d+,)(\d+,)*(\d+)*)/;
-	$siteRank = $1;
-	if (!defined $siteRank) {
-		$siteRank = "None";
-	}
+	$siteDelta = $result[2];
+
+	#Fail Safe if no data
+	if (!defined $siteRank) { $siteRank = "None"; }
+	if (!defined $siteDelta) { $siteDelta = "None"; }
+	
+	#Tidy Formatting
+	$siteRank =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
+	$siteDelta =~ s/(\d{1,3}?)(?=(\d{3})+$)/$1,/g;
+
+	#Debug
+	#print "Site rank: $siteRank \n";
+	#print "Site rank Change: $siteDelta \n";
+
 	print "Done $site\n";
 	@result = '';
 	
-	print OUTPUT "<table width=\"50%\">";
-	print OUTPUT "<tr><td width=\"50%\">Site Statistics for: <strong>$site<\/strong><\/br><\/td><td><\/td><\/tr>";
-	print OUTPUT "<tr><td><\/td><td>Site Rank: <strong>$siteRank<\/strong><\/br><\/td><\/tr>";
-#	print OUTPUT "<tr><td><\/td><td>Sites Linking in: <strong>$siteLinks<\/strong><\/br><\/td><\/tr>";
-	print OUTPUT "<\/table>";
-	
+	print OUTPUT "<tr><td width=\"50%\">Site Statistics for: <strong>$site<\/strong><\/br><\/td><td>";
+	print OUTPUT "Site Rank: <strong>$siteRank<\/strong><\/br><\/td><\/tr>";
+	print OUTPUT "<tr><td><\/td><td>Site Rank Change: <strong>$siteDelta<\/strong><\/br><\/td><\/tr>";
+	print OUTPUT "<tr><td>&nbsp;<\/td><\/tr>";
 	}
-}
-#if (unlink($junkFile) == 0) {
-#    print "Housekeeping failed. Unable to delete $junkFile.\n Feel free to delete it manually.\n";
-#} else {
-#    print "\n\nDone\n";
-#}
+}	
+	print OUTPUT "<\/table>";
+
 print OUTPUT "<\/body><\/html>"; close (OUTPUT); close (JUNKFILE); close (SITES); close (DEBUG);
