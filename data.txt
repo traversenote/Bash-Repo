@@ -1,0 +1,23 @@
+HTTP/1.1 200 OK
+Content-Type: text/xml
+Date: Mon, 19 Oct 2015 01:11:00 GMT
+Server: nginx
+Via: 1.1 BC1-ACLD
+Content-Length: 510
+Connection: Keep-Alive
+
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Need more Alexa data?  Find our APIs here: https://aws.amazon.com/alexa/ -->
+<ALEXA VER="0.9" URL="noelleeming.co.nz/" HOME="0" AID="=" IDN="noelleeming.co.nz/">
+<SD TITLE="A" FLAGS="" HOST="noelleeming.co.nz">
+<TITLE TEXT="Noel Leeming"/>
+<OWNER NAME="Noelleeming.co.nz"/>
+</SD>
+<SD>
+<POPULARITY URL="noelleeming.co.nz/" TEXT="70842" SOURCE="panel"/>
+<REACH RANK="79529"/>
+<RANK DELTA="+3332"/>
+<COUNTRY CODE="NZ" NAME="New Zealand" RANK="124"/>
+</SD>
+</ALEXA>
